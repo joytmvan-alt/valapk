@@ -17,10 +17,10 @@ jobs:
       with:
         channel: 'stable'
 
-    - name: Build Project
+    - name: Prepare Project and Build
       run: |
-        flutter create . --platforms=android --org com.quran.digital
-        flutter pub get
+        flutter create . --platforms=android --org com.quran.digital --force
+        flutter pub add http
         flutter build apk --release
 
     - name: Upload APK
@@ -28,4 +28,3 @@ jobs:
       with:
         name: Quran-APK
         path: build/app/outputs/flutter-apk/app-release.apk
-
