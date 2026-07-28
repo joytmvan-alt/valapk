@@ -32,20 +32,50 @@ class _HomeScreenState extends State<HomeScreen> {
   List filteredSurahs = [];
   bool isLoading = true;
 
+  // Variabel Dynamic Config
+  String appTitle = "Al-Qur'an Digital";
+  String notificationMessage = "";
+  bool showNotification = false;
+
+  // GANTI LINK INI DENGAN URL WEB ADMIN KAMU (Misal dari Render.com)
+  final String adminApiUrl = "https://ecological-tariff-compression-idol.trycloudflare.com/api/config";
+
   @override
   void initState() {
     super.initState();
+    fetchAdminConfig();
     fetchSurahs();
   }
 
+  // Mengambil Pengaturan Nama APK & Notifikasi dari Web Admin
+  Future<void> fetchAdminConfig() async {
+    try {
+      final res = await http.get(Uri.parse(adminApiUrl));
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+        setState(() {
+          appTitle = data['app_name'] ?? "Al-Qur'an Digital";
+          notificationMessage = data['notification'] ?? "";
+          showNotification = data['show_notification'] ?? false;
+        });
+      }
+    } catch (e) {
+      print("Gagal mengambil data admin: $e");
+    }
+  }
+
   Future<void> fetchSurahs() async {
-    final res = await http.get(Uri.parse("https://equran.id/api/v2/surat"));
-    if (res.statusCode == 200) {
-      setState(() {
-        surahs = json.decode(res.body)['data'];
-        filteredSurahs = surahs;
-        isLoading = false;
-      });
+    try {
+      final res = await http.get(Uri.parse("https://equran.id/api/v2/surat"));
+      if (res.statusCode == 200) {
+        setState(() {
+          surahs = json.decode(res.body)['data'];
+          filteredSurahs = surahs;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Gagal mengambil data surah: $e");
     }
   }
 
@@ -58,9 +88,39 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Al-Qur'an Digital")),
+      appBar: AppBar(
+        title: Text(appTitle), // Dynamic Header dari Web
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              fetchAdminConfig();
+              fetchSurahs();
+            },
+          )
+        ],
+      ),
       body: Column(
         children: [
+          // Banner Notifikasi Dynamic dari Web Admin
+          if (showNotification && notificationMessage.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              color: Colors.teal.shade800,
+              child: Row(
+                children: [
+                  const Icon(Icons.notifications_active, color: Colors.amber),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      notificationMessage,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
