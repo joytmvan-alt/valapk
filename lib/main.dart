@@ -146,4 +146,3 @@ class DetailSurah extends StatelessWidget {
     );
   }
 }
-
